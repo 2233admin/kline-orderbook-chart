@@ -339,7 +339,7 @@ chart.setHeatmap(
 Full-featured real-time demo with live market data from **Binance Futures** and **Bybit Linear** — orderbook heatmap, footprint chart, RSI, OI, drawing tools, and more:
 
 ```bash
-git clone https://github.com/PhamNhinh/kline-orderbook-chart.git
+git clone https://github.com/tapedelta/kline-orderbook-chart.git
 cd kline-orderbook-chart/demo
 npm install
 cd server && npm install && cd ..
@@ -381,6 +381,50 @@ For the **full experience** with all features:
 │  <canvas> ← one element, everything renders here             │
 └──────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Native & Desktop (GPUI / Rust)
+
+The same engine core that powers the web package also builds as a **native
+Rust crate** — no browser, no canvas, no JavaScript runtime. Every frame the
+engine emits a renderer-agnostic **command buffer** (`FillRect`, `Line`,
+`Text`, `HeatmapWorld`, …); on the web a thin layer dispatches it to Canvas
+2D, and natively you dispatch the *same* buffer to your painter — **[GPUI](https://github.com/zed-industries/zed)**
+(the Rust UI framework behind the Zed editor), wgpu, or skia.
+
+```rust
+use chart_engine::{ChartEngine, render::Paint};
+
+let mut engine = ChartEngine::new(960.0, 600.0);
+engine.set_license(include_str!("../license.mrd").trim()); // native token: pl="any"
+engine.set_klines(&ts, &open, &high, &low, &close, &volume);
+
+for cmd in engine.commands() {           // walk the last frame
+    match cmd {
+        Paint::FillRect { x, y, w, h, color } => painter.fill_rect(x, y, w, h, color),
+        Paint::Line { x1, y1, x2, y2, color, line_width } => painter.line(x1, y1, x2, y2, color, line_width),
+        Paint::HeatmapWorld { .. } => painter.heatmap(cmd),  // depth / GEX raster
+        _ => {}
+    }
+}
+```
+
+- **One engine, two targets** — same candles, orderbook heatmap, footprint,
+  liquidation heatmap, GEX gamma heatmap, and 18+ indicators render
+  identically on the web and in a native window. You maintain one engine and
+  two thin dispatchers, not two charts.
+- **GPUI reference adapter** — a buildable `Paint` → GPUI mapping ships in the
+  repo, so you start from a working element instead of an empty `match`.
+- **Native licensing** — native builds use an Ed25519 token minted with
+  `pl:"any"`, which skips the web domain check.
+- **Licensed SDK, not source** — the native SDK is a precompiled engine binary
+  plus an open decoder/adapter, sold under the **same commercial licence as the
+  web build**. You licence the binary; the engine source is not sold. Delivered
+  through your licence, not crates.io.
+
+**Read more:** [Native & Desktop (GPUI / Rust) docs](https://tapedelta.com/docs/charting-library/native-gpui)
+&bull; [Building a Native GPUI Chart in Rust — GEX Gamma Heatmap](https://tapedelta.com/blog/gpui-rust-charting-library-gex-heatmap)
 
 ---
 
@@ -504,7 +548,10 @@ See [full Vue guide](docs/examples/vue.md) for composables, theme switching, and
 
 ## Licensing
 
-Free 14-day trial included. Contact us for pricing and license options:
+Free 14-day trial included. **Native / Desktop (GPUI / Rust)** ships under the
+same commercial licence as the web build — a precompiled engine binary, not
+source (see [Native & Desktop docs](https://tapedelta.com/docs/charting-library/native-gpui)).
+Contact us for pricing and license options:
 
 <p align="center">
   <a href="https://app.tapedelta.com/trading/chart-terminal">Try live demo</a>&nbsp;&nbsp;&bull;&nbsp;&nbsp;
@@ -578,7 +625,7 @@ Requires ES2020.
 
 ## Keywords
 
-`orderbook heatmap chart` · `kline heatmap` · `candlestick orderbook depth` · `footprint chart library` · `crypto chart heatmap` · `trading chart library` · `orderbook depth visualization` · `liquidation heatmap` · `volume profile chart` · `market depth chart javascript` · `real-time orderbook heatmap` · `kline orderbook chart`
+`orderbook heatmap chart` · `kline heatmap` · `candlestick orderbook depth` · `footprint chart library` · `crypto chart heatmap` · `trading chart library` · `orderbook depth visualization` · `liquidation heatmap` · `volume profile chart` · `market depth chart javascript` · `real-time orderbook heatmap` · `kline orderbook chart` · `rust charting library` · `gpui chart` · `native rust chart` · `zed gpui chart` · `desktop trading chart`
 
 ---
 
